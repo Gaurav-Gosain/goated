@@ -17,7 +17,7 @@
 ## Installation
 
 ```bash
-pip install goated
+pip install goated-py
 ```
 
 Or build from source:
