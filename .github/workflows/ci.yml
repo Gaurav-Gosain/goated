@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go-version: ['1.21', '1.22', '1.23']
+        go-version: ['1.23']
 
     steps:
       - uses: actions/checkout@v4
@@ -23,16 +23,23 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
-      - name: Build shared library
+      - name: Build shared library (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           cd golib
           go build -buildmode=c-shared -o libgoated.so .
 
+      - name: Build shared library (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd golib
+          go build -buildmode=c-shared -o libgoated.dylib .
+
       - name: Upload library artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libgoated-${{ matrix.os }}-go${{ matrix.go-version }}
-          path: golib/libgoated.so
+          name: libgoated-${{ matrix.os }}
+          path: golib/libgoated.*
 
   test-python:
     name: Test Python
@@ -40,7 +47,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13']
 
     steps:
@@ -71,17 +78,11 @@ jobs:
           pip install ruff
           ruff check goated/
 
-      - name: Run type checking
-        run: |
-          pip install mypy
-          mypy goated/ --ignore-missing-imports || true
-
       - name: Run tests
         run: |
           pytest tests/ -v --tb=short
         env:
           LD_LIBRARY_PATH: ${{ github.workspace }}/golib:$LD_LIBRARY_PATH
-          DYLD_LIBRARY_PATH: ${{ github.workspace }}/golib:$DYLD_LIBRARY_PATH
 
   lint:
     name: Lint

@@ -25,12 +25,12 @@ jobs:
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  build-wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+  build-and-publish:
+    name: Build and Publish to PyPI
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -40,79 +40,22 @@ jobs:
         with:
           go-version: '1.23'
 
-      - name: Build shared library (Linux)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Build shared library
         run: |
           cd golib
           go build -buildmode=c-shared -o libgoated.so .
           cp libgoated.so ../goated/
-
-      - name: Build shared library (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          cd golib
-          go build -buildmode=c-shared -o libgoated.dylib .
-          cp libgoated.dylib ../goated/
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.1
-        env:
-          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
-          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
-          CIBW_ARCHS_LINUX: "x86_64"
-          CIBW_ARCHS_MACOS: "x86_64 arm64"
-
-      - name: Upload wheels
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.os }}
-          path: ./wheelhouse/*.whl
-
-  build-sdist:
-    name: Build source distribution
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install build
+      - name: Install build tools
         run: pip install build
 
-      - name: Build sdist
-        run: python -m build --sdist
-
-      - name: Upload sdist
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdist
-          path: dist/*.tar.gz
-
-  publish-pypi:
-    name: Publish to PyPI
-    needs: [build-wheels, build-sdist]
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - name: Download wheels
-        uses: actions/download-artifact@v4
-        with:
-          pattern: wheels-*
-          path: dist
-          merge-multiple: true
-
-      - name: Download sdist
-        uses: actions/download-artifact@v4
-        with:
-          name: sdist
-          path: dist
+      - name: Build package
+        run: python -m build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
