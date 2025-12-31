@@ -131,7 +131,7 @@ with GoGroup() as g:
 
 # Channels for communication
 ch = Chan[int](buffer=10)
-go(lambda: [ch.Send(i) for i in range(10)] or ch.Close())
+go(lambda: [ch.Send(i) for i in range(10)] and ch.Close())
 for val in ch:
     print(val)
 
