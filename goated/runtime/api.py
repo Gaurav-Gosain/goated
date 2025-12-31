@@ -325,12 +325,17 @@ class Chan(Generic[T]):
     def __iter__(self) -> Iterator[T]:
         """Iterate over channel values until closed."""
         while True:
-            val, ok = self.Recv(timeout=0.01)
-            if not ok:
+            try:
+                val, ok = self.Recv(timeout=0.01)
+                if not ok:
+                    if self._closed and not self._buffer:
+                        break
+                    continue
+                yield cast(T, val)
+            except queue.Empty:
                 if self._closed and not self._buffer:
                     break
                 continue
-            yield cast(T, val)
 
     def __len__(self) -> int:
         with self._lock:
