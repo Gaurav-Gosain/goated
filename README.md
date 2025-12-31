@@ -1,5 +1,10 @@
 # GOATED - Go stdlib for Python
 
+[![PyPI version](https://img.shields.io/pypi/v/goated-py)](https://pypi.org/project/goated-py/)
+[![Python versions](https://img.shields.io/pypi/pyversions/goated-py)](https://pypi.org/project/goated-py/)
+[![CI](https://github.com/Gaurav-Gosain/goated/actions/workflows/ci.yml/badge.svg)](https://github.com/Gaurav-Gosain/goated/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > Write Python-like code. Get Go speeds.
 
 **GOATED** exposes Go's entire standard library to Python through high-performance FFI bindings. Get the best of both worlds: Python's ease of use with Go's blazing speed.
