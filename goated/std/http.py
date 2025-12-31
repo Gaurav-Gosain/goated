@@ -489,7 +489,53 @@ class Server:
         """ListenAndServe listens and serves HTTP requests."""
         try:
             host, port = self._parse_addr()
-            self._server = _http_server.HTTPServer((host, port), _HTTPHandler)
+            mux = self.Handler
+
+            class _MuxHTTPHandler(_http_server.BaseHTTPRequestHandler):
+                def do_GET(self) -> None:
+                    self._handle_request()
+
+                def do_POST(self) -> None:
+                    self._handle_request()
+
+                def do_PUT(self) -> None:
+                    self._handle_request()
+
+                def do_DELETE(self) -> None:
+                    self._handle_request()
+
+                def do_HEAD(self) -> None:
+                    self._handle_request()
+
+                def do_OPTIONS(self) -> None:
+                    self._handle_request()
+
+                def do_PATCH(self) -> None:
+                    self._handle_request()
+
+                def _handle_request(self) -> None:
+                    content_length = int(self.headers.get("Content-Length", 0))
+                    body = self.rfile.read(content_length) if content_length > 0 else None
+
+                    req = Request(
+                        Method=self.command,
+                        URL=self.path,
+                        Header=Header(self.headers.items()),
+                        Body=body,
+                        Host=self.headers.get("Host", ""),
+                    )
+
+                    w = ResponseWriter(self)
+                    try:
+                        mux.ServeHTTP(w, req)
+                    except Exception as e:
+                        if not w._headers_written:
+                            self.send_error(500, str(e))
+
+                def log_message(self, format: str, *args: Any) -> None:
+                    pass
+
+            self._server = _http_server.HTTPServer((host, port), _MuxHTTPHandler)
             self._server.serve_forever()
             return Ok(None)
         except Exception as e:

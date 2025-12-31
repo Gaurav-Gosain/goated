@@ -648,7 +648,7 @@ resp.Body.Read()
 def handler(w, r):
     w.Write(b"Hello")
 
-mux = http.NewServeMux()
+mux = http.ServeMux()
 mux.HandleFunc("/", handler)
 http.ListenAndServe(":8080", mux)
 ```
