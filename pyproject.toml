@@ -1,0 +1,111 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "goated"
+version = "0.1.0"
+description = "Go stdlib bindings for Python - Write Python, Get Go Speed"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Goated Contributors", email = "goated@example.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Go",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+keywords = ["go", "golang", "bindings", "ffi", "performance", "stdlib"]
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-benchmark>=4.0",
+    "mypy>=1.0",
+    "ruff>=0.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/Gaurav-Gosain/goated"
+Documentation = "https://github.com/Gaurav-Gosain/goated#readme"
+Repository = "https://github.com/Gaurav-Gosain/goated"
+Issues = "https://github.com/Gaurav-Gosain/goated/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["goated*"]
+
+[tool.setuptools.package-data]
+goated = ["*.so", "*.dll", "*.dylib"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::pytest.PytestConfigWarning",
+]
+
+[tool.pytest-asyncio]
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4", "SIM"]
+ignore = [
+    # Docstring style conflicts - explicitly choose one from each pair
+    "D203",  # Conflicts with D211 (no blank line before class docstring - we want D211)
+    "D213",  # Conflicts with D212 (summary on first line - we want D212)
+    # Docstrings - project uses Go-style concise API
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D107",
+    "D205",
+    "D400",
+    "D401",
+    "D415",
+    # Style preferences - allow flexibility
+    "SIM102", # Nested if statements (sometimes clearer)
+    "SIM113", # Use enumerate (sometimes not clearer)
+    "SIM115", # Context manager for open (Go-style file handling returns File objects)
+    # Go-style naming - INTENTIONAL to match Go stdlib API
+    "N802",  # Function name should be lowercase (Go uses PascalCase: Add, Done, Wait, Send, Recv, etc.)
+    "N803",  # Argument name should be lowercase (Go uses camelCase: contentType, statusCode)
+    "N806",  # Variable in function should be lowercase (Go-style: ResultPtrArray, StrPtrArray)
+    "N818",  # Exception name should be named with Error suffix (Go uses: EOF, ErrTooLong, SkipDir)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"examples/*" = ["E402", "T201", "E501", "B904"]
+"benchmarks/*" = ["T201", "E722"]
+"tests/*" = ["N801", "E402"]
+"goated/std/goos.py" = ["SIM115"]
+"goated/std/zip.py" = ["SIM115"]
+"goated/std/filepath.py" = ["E402"]
+"goated/std/path.py" = ["E402"]
+"goated/std/testing.py" = ["N801"]

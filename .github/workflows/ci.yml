@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-go:
+    name: Build Go Library
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        go-version: ['1.21', '1.22', '1.23']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Build shared library
+        run: |
+          cd golib
+          go build -buildmode=c-shared -o libgoated.so .
+
+      - name: Upload library artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libgoated-${{ matrix.os }}-go${{ matrix.go-version }}
+          path: golib/libgoated.so
+
+  test-python:
+    name: Test Python
+    needs: build-go
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build shared library
+        run: |
+          cd golib
+          go build -buildmode=c-shared -o libgoated.so .
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run linting
+        run: |
+          pip install ruff
+          ruff check goated/
+
+      - name: Run type checking
+        run: |
+          pip install mypy
+          mypy goated/ --ignore-missing-imports || true
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --tb=short
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/golib:$LD_LIBRARY_PATH
+          DYLD_LIBRARY_PATH: ${{ github.workspace }}/golib:$DYLD_LIBRARY_PATH
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff
+        run: ruff check goated/
+
+      - name: Check formatting
+        run: ruff format --check goated/
