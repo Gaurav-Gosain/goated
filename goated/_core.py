@@ -3,6 +3,11 @@
 This module handles loading the Go shared library and provides the low-level
 interface for calling Go functions from Python.
 
+Supports three FFI backends (in order of preference):
+1. cffi API mode (compiled C extension) - ~70ns/call
+2. cffi ABI mode (dlopen) - ~250ns/call
+3. ctypes (fallback) - ~300ns/call
+
 The library is loaded lazily on first use, and the path is determined by:
 1. GOATED_LIB environment variable
 2. Platform-specific library in the package directory
@@ -19,13 +24,46 @@ from __future__ import annotations
 import ctypes
 import os
 import sys
+import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ctypes import CDLL
 
-__all__ = ["get_lib", "GoatedLibrary", "LibraryNotFoundError"]
+__all__ = ["get_lib", "GoatedLibrary", "LibraryNotFoundError", "get_cffi_lib"]
+
+# Try to load cffi API mode extension (compiled, fastest)
+_cffi_lib: Any = None
+_cffi_ffi: Any = None
+_cffi_available = False
+
+try:
+    from _goated_cffi import ffi as _cffi_ffi, lib as _cffi_lib
+    _cffi_available = True
+except ImportError:
+    try:
+        # Try with explicit path
+        _pkg_dir = os.path.dirname(os.path.abspath(__file__))
+        if _pkg_dir not in sys.path:
+            sys.path.insert(0, _pkg_dir)
+        from _goated_cffi import ffi as _cffi_ffi, lib as _cffi_lib
+        _cffi_available = True
+    except ImportError:
+        pass
+
+
+def get_cffi_lib() -> Any:
+    """Get the cffi API-mode library if available (fastest backend).
+
+    Returns None if cffi extension is not compiled.
+    """
+    return _cffi_lib if _cffi_available else None
+
+
+def get_cffi_ffi() -> Any:
+    """Get the cffi FFI instance if available."""
+    return _cffi_ffi if _cffi_available else None
 
 
 class LibraryNotFoundError(Exception):
@@ -324,14 +362,16 @@ class GoatedLibrary:
         return getattr(lib, name)
 
 
-# Global library instance (lazy singleton)
+# Global library instance (lazy singleton) - thread-safe
 _library: GoatedLibrary | None = None
+_library_lock = threading.Lock()
 
 
 def get_lib() -> GoatedLibrary:
     """Get the global Goated library instance.
 
-    The library is loaded lazily on first access.
+    The library is loaded lazily on first access. Thread-safe via
+    double-checked locking.
 
     Returns:
         The GoatedLibrary instance
@@ -348,7 +388,9 @@ def get_lib() -> GoatedLibrary:
     """
     global _library
     if _library is None:
-        _library = GoatedLibrary()
+        with _library_lock:
+            if _library is None:
+                _library = GoatedLibrary()
     return _library
 
 

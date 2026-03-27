@@ -44,12 +44,16 @@ from goated.runtime.api import (
     RWMutex,
     Select,
     SelectCase,
+    Semaphore,
     Ticker,
     WaitGroup,
+    fan_out,
     go,
     goroutine,
+    merge,
     parallel_for,
     parallel_map,
+    pipe,
 )
 from goated.runtime.channel import (
     FastChan,
@@ -88,6 +92,10 @@ __all__ = [
     "AfterFunc",
     "Ticker",
     "After",
+    "Semaphore",
+    "pipe",
+    "merge",
+    "fan_out",
     "parallel_for",
     "parallel_map",
     # Optimized channels

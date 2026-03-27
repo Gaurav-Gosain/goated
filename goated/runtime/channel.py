@@ -179,17 +179,15 @@ class FastChan(Generic[T]):
             return len(self._buffer)
 
     def __iter__(self) -> Iterator[T]:
-        """Iterate over channel values until closed."""
+        """Iterate over channel values until closed and drained.
+
+        Blocks properly on condition variables - no polling.
+        """
         while True:
-            value, ok = self.Recv(timeout=0.1)
+            value, ok = self.Recv()
             if not ok:
-                # Check if truly closed or just timeout
-                with self._lock:
-                    if self._closed and not self._buffer:
-                        break
-                continue
-            if value is not None:
-                yield value
+                break
+            yield value
 
 
 class MPMCQueue(Generic[T]):

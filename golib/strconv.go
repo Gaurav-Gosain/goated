@@ -10,18 +10,6 @@ import (
 	"strconv"
 )
 
-// ParseInt result structure
-type parseIntResult struct {
-	value int64
-	err   string
-}
-
-// ParseFloat result structure
-type parseFloatResult struct {
-	value float64
-	err   string
-}
-
 //export goated_strconv_Atoi
 func goated_strconv_Atoi(s *C.char, errOut **C.char) C.longlong {
 	result, err := strconv.Atoi(C.GoString(s))

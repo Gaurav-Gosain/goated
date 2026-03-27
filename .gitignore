@@ -84,6 +84,12 @@ dmypy.json
 *.h
 golib/*.h
 
+# cffi build artifacts
+_goated_cffi.c
+_goated_cffi.o
+goated/_goated_cffi.c
+goated/_goated_cffi.o
+
 # OS files
 .DS_Store
 Thumbs.db

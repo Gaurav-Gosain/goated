@@ -95,11 +95,12 @@ class RWMutex:
     """A RWMutex is a reader/writer mutual exclusion lock.
 
     The lock can be held by an arbitrary number of readers or a single writer.
+    Uses writer-preference to prevent writer starvation.
 
     Example:
         >>> rw = RWMutex()
         >>>
-        >>> # For reading
+        >>> # For reading (concurrent reads allowed)
         >>> rw.RLock()
         >>> try:
         ...     # read data
@@ -107,7 +108,7 @@ class RWMutex:
         ... finally:
         ...     rw.RUnlock()
         >>>
-        >>> # For writing
+        >>> # For writing (exclusive access)
         >>> rw.Lock()
         >>> try:
         ...     # write data
@@ -117,34 +118,58 @@ class RWMutex:
 
     """
 
-    __slots__ = ("_lock",)
+    __slots__ = ("_state_lock", "_readers", "_no_readers", "_write_lock")
 
     def __init__(self) -> None:
-        self._lock = threading.RLock()
+        self._state_lock = threading.Lock()
+        self._readers = 0
+        self._no_readers = threading.Event()
+        self._no_readers.set()
+        self._write_lock = threading.Lock()
 
     def Lock(self) -> None:
-        """Lock locks rw for writing."""
-        self._lock.acquire()
+        """Lock locks rw for writing. Blocks new readers and waits for existing."""
+        self._write_lock.acquire()
+        self._no_readers.wait()
 
     def Unlock(self) -> None:
         """Unlock unlocks rw for writing."""
-        self._lock.release()
+        self._write_lock.release()
 
     def TryLock(self) -> bool:
         """TryLock tries to lock rw for writing and returns whether it succeeded."""
-        return self._lock.acquire(blocking=False)
+        if not self._write_lock.acquire(blocking=False):
+            return False
+        with self._state_lock:
+            if self._readers > 0:
+                self._write_lock.release()
+                return False
+        return True
 
     def RLock(self) -> None:
-        """RLock locks rw for reading."""
-        self._lock.acquire()
+        """RLock locks rw for reading. Multiple readers can hold simultaneously."""
+        self._write_lock.acquire()
+        with self._state_lock:
+            self._readers += 1
+            self._no_readers.clear()
+        self._write_lock.release()
 
     def RUnlock(self) -> None:
         """RUnlock undoes a single RLock call."""
-        self._lock.release()
+        with self._state_lock:
+            self._readers -= 1
+            if self._readers == 0:
+                self._no_readers.set()
 
     def TryRLock(self) -> bool:
         """TryRLock tries to lock rw for reading and returns whether it succeeded."""
-        return self._lock.acquire(blocking=False)
+        if not self._write_lock.acquire(blocking=False):
+            return False
+        with self._state_lock:
+            self._readers += 1
+            self._no_readers.clear()
+        self._write_lock.release()
+        return True
 
 
 # =============================================================================
