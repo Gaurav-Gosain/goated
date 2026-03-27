@@ -7,17 +7,9 @@
 
 > Write Python-like code. Get Go speeds.
 
-**GOATED** exposes Go's entire standard library to Python through high-performance FFI bindings. Get the best of both worlds: Python's ease of use with Go's blazing speed.
+## What is GOATED
 
-## Features
-
-- **Go Speed**: Native Go performance for CPU-intensive operations
-- **Pythonic API**: Three API styles to match your preferences
-- **Type Safe**: Full type hints with `Result[T, E]` error handling
-- **Async Ready**: Go channels integrate seamlessly with asyncio
-- **Go Concurrency**: Goroutines, WaitGroups, channels - just like Go
-- **Free-threaded Ready**: Optimized for Python 3.13t (no GIL) with true parallelism
-- **Zero Dependencies**: Uses only Python stdlib (ctypes)
+GOATED exposes Go's standard library to Python through high-performance FFI bindings. It provides **21 drop-in stdlib replacements** backed by **279 Go FFI exports**, delivering an average **10x speedup** over pure-Python stdlib modules. Change your imports, keep your code.
 
 ## Installation
 
@@ -26,58 +18,172 @@ pip install goated-py
 ```
 
 Or build from source:
+
 ```bash
 git clone https://github.com/Gaurav-Gosain/goated
 cd goated
 make install
 ```
 
-## Quick Start
+## Quick Start: Drop-in Replacements
 
-### Style A: Direct Mapping (Go names)
+The fastest way to speed up your Python code -- just change your imports:
+
 ```python
-from goated.std import strings
+# Just change your imports - everything else stays the same
+from goated.compat import json      # same as import json
+from goated.compat import html      # 13x faster unescape
+from goated.compat import gzip      # Go-powered compression
+from goated.compat import hashlib   # Go one-shot hashing
 
-# Split a string - returns GoSlice
-result = strings.Split("hello,world,goated", ",")
-print(result.to_list())  # ['hello', 'world', 'goated']
-
-# Check containment
-if strings.Contains("goated", "goat"):
-    print("Found it!")
+# Your existing code works unchanged
+data = json.loads('{"key": "value"}')
+safe = html.escape("<script>alert('xss')</script>")
+compressed = gzip.compress(b"data" * 1000)
+digest = hashlib.sha256(b"hello").hexdigest()
 ```
 
-### Style B: Pythonic Wrappers (snake_case)
+No new APIs to learn. No code changes beyond the import line.
+
+## Performance
+
+Go targets pure-Python stdlib modules where Python has no C accelerator. Real benchmark results:
+
+| Operation | Speedup vs Python stdlib |
+|-----------|------------------------:|
+| `email.parseaddr` | **46x** |
+| `textwrap.fill` | **44x** |
+| `html.unescape` | **16x** |
+| `urllib.parse.unquote` | **11x** |
+| Batch JSON validate | **5.5x** |
+| Batch SHA256 | **3.8x** |
+
+These numbers come from benchmarking Go FFI calls against Python's pure-Python implementations. Modules backed by C extensions in CPython (like `json` parsing) show smaller gains; modules that are pure Python (like `html`, `textwrap`, `email`) show the largest improvements.
+
+## 21 Drop-in Modules
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| `json` | `from goated.compat import json` | JSON encoding/decoding, Go-accelerated validation and compaction |
+| `hashlib` | `from goated.compat import hashlib` | One-shot SHA256/SHA512/MD5 hashing via Go |
+| `base64` | `from goated.compat import base64` | Base64/URL-safe encoding for large payloads |
+| `re` | `from goated.compat import re` | Go RE2 engine for compatible patterns |
+| `gzip` | `from goated.compat import gzip` | Go-powered gzip compress/decompress |
+| `zlib` | `from goated.compat import zlib` | Go-powered zlib compress/decompress and checksums |
+| `hmac` | `from goated.compat import hmac` | Go-accelerated HMAC one-shot digests |
+| `struct` | `from goated.compat import struct` | Binary packing (passthrough to Python) |
+| `statistics` | `from goated.compat import statistics` | Go-accelerated stats for large datasets |
+| `heapq` | `from goated.compat import heapq` | Go-accelerated nlargest/nsmallest |
+| `bisect` | `from goated.compat import bisect` | Bisection algorithm (passthrough to Python) |
+| `csv` | `from goated.compat import csv` | Go-accelerated bulk CSV read_all |
+| `html` | `from goated.compat import html` | Go-accelerated escape/unescape (16x faster) |
+| `difflib` | `from goated.compat import difflib` | Go-accelerated unified diff generation |
+| `textwrap` | `from goated.compat import textwrap` | Go-accelerated fill/wrap (44x faster) |
+| `ipaddress` | `from goated.compat import ipaddress` | Go-accelerated IP validation and parsing |
+| `fnmatch` | `from goated.compat import fnmatch` | Go-accelerated glob pattern matching |
+| `colorsys` | `from goated.compat import colorsys` | Go-accelerated batch color conversions |
+| `email_utils` | `from goated.compat import email_utils` | Go-accelerated address parsing (46x faster) |
+| `uuid` | `from goated.compat import uuid` | Go-accelerated UUID4 generation |
+| `urllib` | `from goated.compat import urllib` | Go-accelerated URL quote/unquote (11x faster) |
+
+## Batch Operations
+
+For maximum throughput, use batch APIs that process many items in a single FFI call with goroutine parallelism:
+
 ```python
-from goated.pythonic import strings
+from goated.batch import batch_sha256, batch_gzip_compress, batch_json_valid
 
-# Returns native Python list
-parts = strings.split("hello,world", ",")
-print(parts)  # ['hello', 'world']
+# Hash 1000 items in parallel via goroutines
+import os
+data = [os.urandom(4096) for _ in range(1000)]
+hashes = batch_sha256(data)  # 3-4x faster than sequential Python
 
-# Chainable operations with Result types
-from goated.pythonic import strconv
+# Compress in parallel
+compressed = batch_gzip_compress(data)
 
-value = strconv.parse_int("42", base=10).unwrap()
-print(value)  # 42
-
-# Handle errors gracefully
-result = strconv.parse_int("not_a_number", base=10)
-match result:
-    case Ok(v):
-        print(f"Parsed: {v}")
-    case Err(e):
-        print(f"Error: {e}")
+# Validate JSON in parallel
+jsons = ['{"valid": true}', 'not json', '{"also": "valid"}']
+results = batch_json_valid(jsons)  # [True, False, True]
 ```
 
-### Style C: Drop-in Replacement
-```python
-# Use as drop-in replacement for Python stdlib
-from goated.compat import json
+Available batch operations: `batch_sha256`, `batch_sha512`, `batch_md5`, `batch_gzip_compress`, `batch_gzip_decompress`, `batch_b64encode`, `batch_b64decode`, `batch_json_valid`, `batch_regex_match`.
 
-data = json.loads('{"name": "goated", "fast": true}')
-print(json.dumps(data, indent=2))
+## Go HTTP Server
+
+Start a Go `net/http` server from Python -- handles 100K+ requests/second:
+
+```python
+from goated.server import GoServer
+
+with GoServer(":8080") as app:
+    app.json("/api/health", '{"status": "ok"}')
+    app.static("/", "Hello from Go!")
+    input("Server running at :8080, press Enter to stop...")
 ```
+
+Also available: `FileServer` for serving static directories and `BenchServer` for maximum-throughput benchmarking.
+
+## Go-style Concurrency
+
+Full Go concurrency primitives, backed by an M:N work-stealing scheduler:
+
+```python
+from goated.runtime import go, WaitGroup, GoGroup, Chan
+
+# Fire-and-forget goroutine
+go(lambda: print("Hello from goroutine!"))
+
+# WaitGroup for synchronization
+wg = WaitGroup()
+for i in range(10):
+    wg.Add(1)
+    go(worker, i, done=wg)
+wg.Wait()
+
+# GoGroup with automatic tracking
+with GoGroup() as g:
+    for url in urls:
+        g.go(fetch, url)
+# Automatically waits here
+
+# Typed channels
+ch = Chan[int](buffer=10)
+go(lambda: [ch.Send(i) for i in range(10)] or ch.Close())
+for val in ch:
+    print(val)
+```
+
+### Pipelines, Fan-out, and Semaphores
+
+```python
+from goated.runtime import Chan, pipe, merge, fan_out, Semaphore, GoGroup
+
+# Pipeline: transform values through stages
+src = Chan[int](buffer=10)
+doubled = pipe(src, lambda x: x * 2)
+stringed = pipe(doubled, lambda x: str(x))
+
+# Fan-out: distribute work across N consumers
+outputs = fan_out(src, n=4)
+
+# Merge: combine multiple channels into one
+combined = merge(ch1, ch2, ch3)
+
+# Semaphore: limit concurrent operations
+sem = Semaphore(3)
+with GoGroup() as g:
+    for item in work_items:
+        def task(it=item):
+            with sem:
+                process(it)
+        g.go(task)
+```
+
+Additional primitives: `ErrGroup`, `Mutex`, `RWMutex`, `Once`, `Pool`, `Select`, `Ticker`, `After`, `AfterFunc`, `parallel_map`, `parallel_for`, `FastChan`, `MPMCQueue`.
+
+Channels support true unbuffered rendezvous semantics. Select uses condition-variable notification (no spin-wait).
+
+**Free-threaded Python (3.13t)**: The runtime automatically detects GIL-free execution and enables true OS-thread parallelism.
 
 ## Error Handling with Result Types
 
@@ -102,150 +208,95 @@ value = parse_config("42").unwrap_or(0)
 doubled = parse_config("21").map(lambda x: x * 2).unwrap()
 ```
 
-## Go-style Concurrency
+## Three API Styles
 
-GOATED provides two concurrency models:
+| Style | Import | Returns | Use when |
+|-------|--------|---------|----------|
+| **Direct** | `from goated.std import strings` | `GoSlice`, Go types | You want Go's exact API |
+| **Pythonic** | `from goated.pythonic import strings` | Native Python types | You want snake_case + Result types |
+| **Compat** | `from goated.compat import json` | Python stdlib types | You want a drop-in replacement |
 
-### 1. Sync Goroutines (Go-style)
+## cffi Acceleration
 
-Perfect for CPU-bound work and Go-style concurrency patterns:
+For the fastest possible FFI calls, build the optional cffi compiled extension:
 
-```python
-from goated.runtime import go, WaitGroup, GoGroup, Chan, FastChan
-
-# Simple goroutine spawning
-go(lambda: print("Hello from goroutine!"))
-
-# With WaitGroup (like Go's sync.WaitGroup)
-wg = WaitGroup()
-for i in range(10):
-    wg.Add(1)
-    go(worker, i, done=wg)
-wg.Wait()  # Block until all done
-
-# With GoGroup (easiest - automatic tracking)
-with GoGroup() as g:
-    for url in urls:
-        g.go(fetch, url)
-# Automatically waits here
-
-# Channels for communication
-ch = Chan[int](buffer=10)
-go(lambda: [ch.Send(i) for i in range(10)] and ch.Close())
-for val in ch:
-    print(val)
-
-# FastChan - alternative channel implementation
-fast_ch = FastChan[int](buffer=1000)
+```bash
+python goated/_build_cffi.py  # optional, 3-5x faster FFI calls
 ```
 
-**Free-threaded Python (3.13t)**: The runtime automatically detects and optimizes for GIL-free execution:
-
-```python
-from goated import is_free_threaded
-
-if is_free_threaded():
-    print("Running on free-threaded Python - true parallelism!")
-```
-
-### 2. Async Channels (asyncio integration)
-
-Perfect for I/O-bound work and asyncio applications:
-
-```python
-import asyncio
-from goated import Channel, go
-
-async def producer(ch: Channel[int]):
-    for i in range(10):
-        await ch.send(i)
-    ch.close()
-
-async def consumer(ch: Channel[int]):
-    async for value in ch:
-        print(f"Received: {value}")
-
-async def main():
-    ch = Channel[int](buffer_size=5)
-    await asyncio.gather(
-        producer(ch),
-        consumer(ch)
-    )
-
-asyncio.run(main())
-```
+This generates a C extension that calls the Go shared library directly, reducing per-call overhead from ~300ns (ctypes) to ~70ns. GOATED falls back to ctypes automatically if cffi is not available.
 
 ## Available Packages
 
-| Package | Status | Description |
-|---------|--------|-------------|
-| `strings` | Stable | String manipulation |
-| `bytes` | Stable | Byte slice operations |
-| `strconv` | Stable | String conversions |
-| `encoding/json` | Stable | JSON encoding/decoding |
-| `encoding/base64` | Stable | Base64 encoding |
-| `encoding/csv` | Stable | CSV reading/writing |
-| `encoding/xml` | Stable | XML parsing |
-| `crypto/sha256` | Stable | SHA-256 hashing |
-| `crypto/md5` | Stable | MD5 hashing |
-| `compress/gzip` | Stable | Gzip compression |
-| `compress/zip` | Stable | ZIP archive support |
-| `path` | Stable | Path manipulation |
-| `path/filepath` | Stable | OS-specific path operations |
-| `time` | Stable | Time and duration handling |
-| `regexp` | Beta | Regular expressions |
-| `net` | Beta | Network operations |
-| `net/url` | Stable | URL parsing |
-| **`runtime`** | **Stable** | **M:N goroutine scheduler, channels, sync primitives** |
-| **`goroutine`** | **Stable** | **Go-style concurrency (WaitGroup, Chan, GoGroup)** |
+### Standard Library Bindings (39 modules)
 
-See [docs/std.md](docs/std.md) for the complete API reference.
+| Module | Description |
+|--------|-------------|
+| `strings` | String manipulation (Split, Join, Contains, Replace, etc.) |
+| `bytes` | Byte slice operations |
+| `strconv` | String conversions (Atoi, Itoa, ParseInt, etc.) |
+| `json` | JSON encoding/decoding |
+| `base64` | Base64/URL-safe encoding |
+| `csv` | CSV reading/writing |
+| `xml` | XML parsing |
+| `binary` | Binary encoding |
+| `crypto` | SHA-256, SHA-512, MD5 hashing |
+| `hash` | Hash interface |
+| `hex` | Hexadecimal encoding |
+| `gzip` | Gzip compression |
+| `zip` | ZIP archive support |
+| `path` | Path manipulation |
+| `filepath` | OS-specific path operations |
+| `time` | Time and duration handling |
+| `regexp` | Regular expressions (Go RE2) |
+| `sort` | Sorting algorithms |
+| `rand` | Random number generation |
+| `math` | Mathematical functions |
+| `log` | Logging |
+| `html` | HTML escaping |
+| `mime` | MIME type handling |
+| `net` | Network operations |
+| `url` | URL parsing |
+| `http` | HTTP client |
+| `fmt` | Formatted I/O |
+| `io` | I/O primitives |
+| `bufio` | Buffered I/O |
+| `errors` | Error handling |
+| `context` | Context propagation |
+| `unicode` | Unicode utilities |
+| `utf8` | UTF-8 encoding |
+| `sync` | Mutex, RWMutex, Once, Pool |
+| `goroutine` | Goroutines, WaitGroup, Chan, GoGroup |
+| `parallel` | Parallel map/for |
+| `template` | Text templating |
+| `goos` | OS-level functions |
+| `testing` | Test utilities |
 
-## Examples
+### Drop-in Compat Modules (21 modules)
 
-The `examples/` directory contains runnable examples demonstrating various features:
-
-| Example | Description |
-|---------|-------------|
-| [`basic_strings.py`](examples/basic_strings.py) | String manipulation basics |
-| [`goroutines.py`](examples/goroutines.py) | Go-style concurrency with WaitGroup and GoGroup |
-| [`async_channels.py`](examples/async_channels.py) | Async channels with asyncio integration |
-| [`concurrent_patterns.py`](examples/concurrent_patterns.py) | Common concurrency patterns (fan-out, pipeline, worker pool) |
-| [`result_types.py`](examples/result_types.py) | Error handling with Result[T, E] types |
-| [`json_processing.py`](examples/json_processing.py) | JSON encoding/decoding |
-| [`csv_etl.py`](examples/csv_etl.py) | CSV processing and ETL workflows |
-| [`file_compression.py`](examples/file_compression.py) | Gzip and ZIP compression |
-| [`hashing_crypto.py`](examples/hashing_crypto.py) | Cryptographic hashing (SHA256, MD5) |
-| [`filepath_os.py`](examples/filepath_os.py) | File path operations |
-| [`http_client.py`](examples/http_client.py) | HTTP client usage |
-| [`pipeline.py`](examples/pipeline.py) | Data pipeline patterns |
-| [`task_queue.py`](examples/task_queue.py) | Task queue implementation |
-| [`web_scraper.py`](examples/web_scraper.py) | Concurrent web scraping |
-| [`templating.py`](examples/templating.py) | Text templating |
-
-Run any example with:
-```bash
-uv run python examples/basic_strings.py
-```
-
-## Benchmarks
-
-```
-Operation               Python      Goated      Speedup
--------------------------------------------------------
-JSON parse (1MB)        45.2ms      8.1ms       5.6x
-SHA256 (10MB)           89.3ms      12.4ms      7.2x
-Gzip compress (5MB)     234ms       41ms        5.7x
-String split (1M ops)   1.2s        0.18s       6.7x
-Regex match (100K)      890ms       95ms        9.4x
-```
-
-## How It Works
-
-1. **Go Shared Library**: Go code compiled with `-buildmode=c-shared`
-2. **Handle-Based FFI**: No raw pointers cross the boundary (GC-safe)
-3. **ctypes Binding**: Zero-dependency Python FFI
-4. **Code Generation**: Bindings auto-generated from Go source
+| Module | Description |
+|--------|-------------|
+| `json` | JSON with Go-accelerated validation/compaction |
+| `hashlib` | One-shot Go hashing (SHA256, SHA512, MD5) |
+| `base64` | Go-accelerated Base64 for large payloads |
+| `re` | Go RE2 for compatible regex patterns |
+| `gzip` | Go-powered compress/decompress |
+| `zlib` | Go-powered zlib + checksums |
+| `hmac` | Go-accelerated HMAC digests |
+| `struct` | Binary packing (passthrough) |
+| `statistics` | Go-accelerated for large datasets |
+| `heapq` | Go-accelerated nlargest/nsmallest |
+| `bisect` | Bisection (passthrough) |
+| `csv` | Go-accelerated bulk read_all |
+| `html` | Go-accelerated escape/unescape |
+| `difflib` | Go-accelerated unified diff |
+| `textwrap` | Go-accelerated fill/wrap |
+| `ipaddress` | Go-accelerated IP validation |
+| `fnmatch` | Go-accelerated pattern matching |
+| `colorsys` | Go-accelerated color conversions |
+| `email_utils` | Go-accelerated address parsing |
+| `uuid` | Go-accelerated UUID4 generation |
+| `urllib` | Go-accelerated URL quote/unquote |
 
 ## Development
 
@@ -253,60 +304,35 @@ Regex match (100K)      890ms       95ms        9.4x
 # Setup
 make dev
 
-# Build
+# Build Go shared library
 make build
 
-# Test
+# Run tests (1064 total)
 make test
 
 # Lint
 make lint
 ```
 
-## Code Generator
+## Architecture
 
-GOATED includes a code generator that parses Go stdlib packages and generates FFI bindings automatically.
-
-### Building the Generator
-
-```bash
-make gen-build
+```
+Python code
+    |
+    v
+goated.compat / goated.std / goated.pythonic   (Python API layer)
+    |
+    v
+goated._core                                    (cffi API-mode or ctypes fallback)
+    |
+    v
+libgoated.so                                    (Go shared library, -buildmode=c-shared)
+    |
+    v
+Go stdlib                                       (279 exported functions across 33 Go files)
 ```
 
-### Usage
-
-```bash
-# Show bindable functions in a package
-make generator PKG=strings
-
-# Generate Go FFI code
-make generator PKG=strings GO_OUT=golib/strings_gen.go
-
-# Generate Python bindings
-make generator PKG=strings PY_OUT=goated/std/strings_gen.py
-
-# Generate both
-make generator PKG=bytes GO_OUT=golib/bytes_gen.go PY_OUT=goated/std/bytes_gen.py
-```
-
-### Direct CLI Usage
-
-```bash
-cd generator
-./goated-gen -pkg strings                    # List bindable functions
-./goated-gen -pkg strings -go-out /tmp/x.go  # Generate Go code
-./goated-gen -pkg strings -py-out /tmp/x.py  # Generate Python code
-```
-
-The generator:
-- Parses Go AST to extract exported functions
-- Filters to only FFI-compatible signatures (basic types, slices)
-- Generates Go CGO export functions
-- Generates Python ctypes bindings with docstrings
-
-## Contributing
-
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Handle-based FFI: no raw pointers cross the boundary, keeping the Go GC happy. Smart thresholds auto-fallback to Python's C extensions when they are faster for small payloads.
 
 ## License
 
