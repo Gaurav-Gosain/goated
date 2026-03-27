@@ -446,3 +446,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # Explicit shutdown to avoid hang on free-threaded Python 3.13t
+    from goated.runtime import shutdown_runtime
+    shutdown_runtime()

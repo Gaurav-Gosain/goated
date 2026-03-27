@@ -139,7 +139,7 @@ class Runtime:
             if not self._started:
                 return
             if self._executor:
-                self._executor.shutdown(wait=wait)
+                self._executor.shutdown(wait=wait, cancel_futures=True)
                 self._executor = None
             self._started = False
 

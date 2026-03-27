@@ -16,8 +16,8 @@ print("=== Pipeline with pipe() ===")
 src = Chan[int](buffer=10)
 
 # Build a pipeline: src -> double -> to_string -> output
-doubled = pipe(src, lambda x: x * 2)
-stringed = pipe(doubled, lambda x: f"value={x}")
+doubled = pipe(src, lambda x: x * 2, buffer=10)
+stringed = pipe(doubled, lambda x: f"value={x}", buffer=10)
 
 # Feed the source
 def feed():
@@ -37,7 +37,7 @@ for item in stringed:
 print("\n=== Fan-out ===")
 
 src2 = Chan[int](buffer=20)
-outputs = fan_out(src2, n=3)
+outputs = fan_out(src2, n=3, buffer=10)
 
 # Feed work items
 def feed_work():
@@ -70,7 +70,7 @@ go(send_and_close, ch1, "alpha", 3)
 go(send_and_close, ch2, "beta", 3)
 go(send_and_close, ch3, "gamma", 3)
 
-combined = merge(ch1, ch2, ch3)
+combined = merge(ch1, ch2, ch3, buffer=10)
 results = sorted(list(combined))
 print(f"  Merged {len(results)} values: {results}")
 
@@ -114,7 +114,7 @@ def bounded_worker(x):
         time.sleep(0.01)  # Simulate I/O
         return f"processed-{x}"
 
-processed = pipe(src3, bounded_worker, workers=4)
+processed = pipe(src3, bounded_worker, buffer=20, workers=4)
 
 def feed_pipeline():
     for i in range(10):
