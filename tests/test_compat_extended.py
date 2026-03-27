@@ -152,14 +152,25 @@ class TestCompatUuid:
 
 class TestGoServer:
     def test_server_lifecycle(self):
+        import pytest
+
+        from goated._core import _USE_GO_LIB
+        if not _USE_GO_LIB:
+            pytest.skip("Go library not available")
+
         from goated.server import GoServer
 
-        srv = GoServer("127.0.0.1:0")  # port 0 = auto-assign
-        # Just test construction
+        srv = GoServer("127.0.0.1:0")
         assert srv is not None
 
     def test_server_context_manager(self):
         """Test that server can start and stop."""
+        import pytest
+
+        from goated._core import _USE_GO_LIB
+        if not _USE_GO_LIB:
+            pytest.skip("Go library not available")
+
         from goated.server import GoServer
 
         srv = GoServer("127.0.0.1:19876")

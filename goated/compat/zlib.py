@@ -70,7 +70,7 @@ def _setup_lib() -> None:
 def compress(data: bytes, level: int = Z_DEFAULT_COMPRESSION, wbits: int = MAX_WBITS) -> bytes:
     """Compress data. Go-accelerated for large inputs with default wbits."""
     if wbits != MAX_WBITS or len(data) < _GO_THRESHOLD:
-        return _zlib.compress(data, level, wbits)
+        return _zlib.compress(data, level)
     if _USE_GO_LIB:
         _setup_lib()
         if _lib_setup:

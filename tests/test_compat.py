@@ -225,7 +225,7 @@ class TestCompatZlib:
 
         from goated.compat import zlib as compat_zlib
 
-        data = b"hello world " * 100
+        data = b"hello world " * 1000  # above threshold
         compressed = compat_zlib.compress(data)
         assert compat_zlib.decompress(compressed) == data
         assert zlib.decompress(compressed) == data
