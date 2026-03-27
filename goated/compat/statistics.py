@@ -12,6 +12,7 @@ Usage:
 
 from __future__ import annotations
 
+import contextlib
 import ctypes
 import math
 import statistics as _statistics
@@ -32,16 +33,12 @@ from typing import Any
 from goated._core import _USE_GO_LIB, get_lib
 
 # These were added in Python 3.10+
-try:
+with contextlib.suppress(ImportError):
     from statistics import correlation, covariance, linear_regression  # noqa: F401
-except ImportError:
-    pass
 
 # NormalDist added in Python 3.8
-try:
+with contextlib.suppress(ImportError):
     from statistics import NormalDist  # noqa: F401
-except ImportError:
-    pass
 
 _GO_THRESHOLD = 1000  # Use Go for datasets > 1000 elements
 _lib_setup = False

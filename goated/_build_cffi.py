@@ -13,7 +13,6 @@ The extension is optional - goated falls back to ctypes if unavailable.
 from __future__ import annotations
 
 import os
-import re
 import sys
 
 import cffi

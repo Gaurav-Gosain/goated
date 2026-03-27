@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import ctypes
 import email.utils as _email_utils
+from collections.abc import Sequence
 
 # Re-export common email.utils functions
 from email.utils import (  # noqa: F401
@@ -26,10 +27,9 @@ from email.utils import (  # noqa: F401
     make_msgid,
     mktime_tz,
     parsedate,
-    parsedate_tz,
     parsedate_to_datetime,
+    parsedate_tz,
 )
-from typing import Sequence
 
 from goated._core import _USE_GO_LIB, get_lib
 
@@ -142,6 +142,7 @@ def batch_parse(
 
     Returns:
         List of (name, email) tuples.
+
     """
     if _USE_GO_LIB:
         # Use individual Go calls (still faster than Python for large batches)
@@ -161,7 +162,8 @@ def batch_parse(
                     )
                     if ok:
                         name = _cffi_ffi.string(name_out[0]).decode("utf-8") if name_out[0] else ""
-                        email = _cffi_ffi.string(email_out[0]).decode("utf-8") if email_out[0] else ""
+                        eout = email_out[0]
+                        email = _cffi_ffi.string(eout).decode("utf-8") if eout else ""
                         results.append((name, email))
                     else:
                         results.append(("", ""))

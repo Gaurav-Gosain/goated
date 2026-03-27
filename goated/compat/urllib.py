@@ -10,7 +10,6 @@ Usage:
 from __future__ import annotations
 
 import ctypes
-from typing import Any
 from urllib.parse import (  # noqa: F401
     DefragResult,
     ParseResult,
@@ -69,7 +68,9 @@ def _setup_lib() -> None:
         pass
 
 
-def quote(string: str, safe: str = "/", encoding: str | None = None, errors: str | None = None) -> str:
+def quote(
+    string: str, safe: str = "/", encoding: str | None = None, errors: str | None = None,
+) -> str:
     """URL-encode a string. Go-accelerated (8-10x faster than urllib.parse).
 
     Note: Go's QueryEscape percent-encodes everything including '/'.
@@ -103,7 +104,9 @@ def quote(string: str, safe: str = "/", encoding: str | None = None, errors: str
     return _py_quote(string, safe=safe)
 
 
-def quote_plus(string: str, safe: str = "", encoding: str | None = None, errors: str | None = None) -> str:
+def quote_plus(
+    string: str, safe: str = "", encoding: str | None = None, errors: str | None = None,
+) -> str:
     """Like quote() but also replaces spaces with +. Go-accelerated."""
     if encoding is not None or errors is not None or safe:
         return _py_quote_plus(string, safe=safe, encoding=encoding, errors=errors)

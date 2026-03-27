@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import ctypes
 import ipaddress as _ipaddress
+from collections.abc import Sequence
 
 # Re-export everything from Python's ipaddress
 from ipaddress import (  # noqa: F401
@@ -30,7 +31,6 @@ from ipaddress import (  # noqa: F401
     ip_network,
     summarize_address_range,
 )
-from typing import Sequence, Union
 
 from goated._core import _USE_GO_LIB, get_lib
 
@@ -54,7 +54,7 @@ def _setup_lib() -> None:
         pass
 
 
-def ip_address(address: Union[str, int, bytes]) -> Union[IPv4Address, IPv6Address]:
+def ip_address(address: str | int | bytes) -> IPv4Address | IPv6Address:
     """Construct an IPv4 or IPv6 address.
 
     Uses Go for fast validation when the input is a string, then delegates
@@ -132,6 +132,7 @@ def batch_validate_ips(addresses: Sequence[str]) -> list[bool]:
 
     Returns:
         List of booleans, True if corresponding address is valid.
+
     """
     if _USE_GO_LIB:
         from goated._core import get_cffi_lib

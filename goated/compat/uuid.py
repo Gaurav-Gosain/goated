@@ -30,7 +30,6 @@ from uuid import (  # noqa: F401
     uuid3,
     uuid5,
 )
-from typing import Sequence
 
 from goated._core import _USE_GO_LIB, get_lib
 

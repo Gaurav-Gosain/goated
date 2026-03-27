@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import ctypes
 import difflib as _difflib
+from collections.abc import Sequence
 
 # Re-export everything from Python's difflib
 from difflib import (  # noqa: F401
@@ -23,7 +24,6 @@ from difflib import (  # noqa: F401
     ndiff,
     restore,
 )
-from typing import Sequence
 
 from goated._core import _USE_GO_LIB, get_lib
 

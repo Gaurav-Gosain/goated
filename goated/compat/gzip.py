@@ -60,7 +60,9 @@ def compress(data: bytes, compresslevel: int = 9, mtime: float | None = None) ->
             try:
                 lib = get_lib().lib
                 out_len = ctypes.c_int()
-                ptr = lib.goated_gzip_compress(data, len(data), compresslevel, ctypes.byref(out_len))
+                ptr = lib.goated_gzip_compress(
+                    data, len(data), compresslevel, ctypes.byref(out_len),
+                )
                 if ptr and out_len.value > 0:
                     result = ctypes.string_at(ptr, out_len.value)
                     lib.goated_free_bytes(ctypes.cast(ptr, ctypes.c_char_p))

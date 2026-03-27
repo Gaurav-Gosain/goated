@@ -39,7 +39,8 @@ _cffi_ffi: Any = None
 _cffi_available = False
 
 try:
-    from _goated_cffi import ffi as _cffi_ffi, lib as _cffi_lib
+    from _goated_cffi import ffi as _cffi_ffi
+    from _goated_cffi import lib as _cffi_lib
     _cffi_available = True
 except ImportError:
     try:
@@ -47,7 +48,8 @@ except ImportError:
         _pkg_dir = os.path.dirname(os.path.abspath(__file__))
         if _pkg_dir not in sys.path:
             sys.path.insert(0, _pkg_dir)
-        from _goated_cffi import ffi as _cffi_ffi, lib as _cffi_lib
+        from _goated_cffi import ffi as _cffi_ffi
+        from _goated_cffi import lib as _cffi_lib
         _cffi_available = True
     except ImportError:
         pass

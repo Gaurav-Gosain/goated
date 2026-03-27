@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import colorsys as _colorsys
 import ctypes
-from typing import Sequence
+from collections.abc import Sequence
 
 # Re-export all single-conversion functions from Python's colorsys
 from colorsys import (  # noqa: F401
@@ -71,6 +71,7 @@ def batch_rgb_to_hsv(
 
     Returns:
         List of (h, s, v) tuples.
+
     """
     n = len(colors)
     if n < _GO_THRESHOLD or not _USE_GO_LIB:
@@ -136,6 +137,7 @@ def batch_hsv_to_rgb(
 
     Returns:
         List of (r, g, b) tuples.
+
     """
     return [_colorsys.hsv_to_rgb(h, s, v) for h, s, v in colors]
 

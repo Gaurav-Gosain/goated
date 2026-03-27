@@ -14,6 +14,8 @@ Usage:
 
 from __future__ import annotations
 
+# template was removed in Python 3.14
+import contextlib
 import ctypes
 import re as _re
 
@@ -44,11 +46,8 @@ from typing import Any
 
 from goated._core import _USE_GO_LIB, get_lib
 
-# template was removed in Python 3.14
-try:
+with contextlib.suppress(ImportError):
     from re import template  # type: ignore[attr-defined]  # noqa: F401
-except ImportError:
-    pass
 
 # NOFLAG was added in Python 3.11
 try:
@@ -318,7 +317,7 @@ def fullmatch(pattern: str, string: str, flags: int = 0) -> Match[str] | None:
 
 def split(pattern: str, string: str, maxsplit: int = 0, flags: int = 0) -> list[str]:
     """Split the source string by the occurrences of the pattern."""
-    return _re.split(pattern, string, maxsplit, flags)
+    return _re.split(pattern, string, maxsplit=maxsplit, flags=flags)
 
 
 def findall(pattern: str, string: str, flags: int = 0) -> list[Any]:
@@ -333,12 +332,14 @@ def finditer(pattern: str, string: str, flags: int = 0) -> Any:
 
 def sub(pattern: str, repl: str | Any, string: str, count: int = 0, flags: int = 0) -> str:
     """Return the string obtained by replacing the leftmost occurrences of pattern."""
-    return _re.sub(pattern, repl, string, count, flags)
+    return _re.sub(pattern, repl, string, count=count, flags=flags)
 
 
-def subn(pattern: str, repl: str | Any, string: str, count: int = 0, flags: int = 0) -> tuple[str, int]:
+def subn(
+    pattern: str, repl: str | Any, string: str, count: int = 0, flags: int = 0,
+) -> tuple[str, int]:
     """Like sub(), but also return the number of substitutions made."""
-    return _re.subn(pattern, repl, string, count, flags)
+    return _re.subn(pattern, repl, string, count=count, flags=flags)
 
 
 __all__ = [

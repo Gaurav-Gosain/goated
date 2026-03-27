@@ -13,10 +13,10 @@ from __future__ import annotations
 
 import ctypes
 import fnmatch as _fnmatch
+from collections.abc import Sequence
 
 # Re-export translate from Python's fnmatch
 from fnmatch import translate  # noqa: F401
-from typing import Sequence
 
 from goated._core import _USE_GO_LIB, get_lib
 
@@ -120,7 +120,7 @@ def filter(names: Sequence[str], pat: str) -> list[str]:
             cffi_lib.goated_batch_fnmatch(
                 pat.encode("utf-8"), names_arr, len(names_list), results,
             )
-            return [n for n, m in zip(names_list, results) if m]
+            return [n for n, m in zip(names_list, results, strict=False) if m]
         except Exception:
             pass
 
@@ -135,7 +135,7 @@ def filter(names: Sequence[str], pat: str) -> list[str]:
             lib.goated_batch_fnmatch(
                 pat.encode("utf-8"), names_arr, len(names_list), results,
             )
-            return [n for n, m in zip(names_list, results) if m]
+            return [n for n, m in zip(names_list, results, strict=False) if m]
         except Exception:
             pass
 

@@ -31,6 +31,7 @@ Usage:
 
 from __future__ import annotations
 
+import contextlib
 import ctypes
 from typing import Any
 
@@ -107,6 +108,7 @@ class GoServer:
             app.json("/api/health", '{"status": "ok"}')
             app.static("/hello", "Hello, World!")
             input("Press Enter to stop...")
+
     """
 
     def __init__(self, addr: str = ":8080") -> None:
@@ -133,6 +135,7 @@ class GoServer:
 
         Returns:
             Self for chaining.
+
         """
         lib = _get_lib()
         lib.goated_http_server_route(
@@ -162,6 +165,7 @@ class GoServer:
 
         Raises:
             GoServerError: If the server fails to start.
+
         """
         if self._started:
             return self
@@ -234,10 +238,8 @@ class GoServer:
         self.stop()
 
     def __del__(self) -> None:
-        try:
+        with contextlib.suppress(Exception):
             self.stop()
-        except Exception:
-            pass
 
     def __repr__(self) -> str:
         status = "running" if self._started else "stopped"
@@ -256,6 +258,7 @@ class FileServer:
     Example:
         with FileServer(":8080", "./static") as srv:
             print(f"Serving files at {srv.addr}")
+
     """
 
     def __init__(self, addr: str, directory: str) -> None:
@@ -328,10 +331,8 @@ class FileServer:
         self.stop()
 
     def __del__(self) -> None:
-        try:
+        with contextlib.suppress(Exception):
             self.stop()
-        except Exception:
-            pass
 
     def __repr__(self) -> str:
         status = "running" if self._started else "stopped"
@@ -354,6 +355,7 @@ class BenchServer:
         with BenchServer(":8080", '{"ok": true}') as srv:
             # Use wrk or ab to benchmark: wrk -t4 -c100 http://localhost:8080/
             input("Benchmarking...")
+
     """
 
     def __init__(self, addr: str, json_response: str) -> None:
@@ -410,10 +412,8 @@ class BenchServer:
         self.stop()
 
     def __del__(self) -> None:
-        try:
+        with contextlib.suppress(Exception):
             self.stop()
-        except Exception:
-            pass
 
     def __repr__(self) -> str:
         status = "running" if self._started else "stopped"
@@ -434,6 +434,7 @@ def bench_server(addr: str, json_response: str) -> int:
 
     Raises:
         GoServerError: If the server fails to start.
+
     """
     _setup()
     lib = _get_lib()
@@ -466,13 +467,12 @@ def stop_server(server_id: int) -> None:
 
     Args:
         server_id: The server ID to stop.
+
     """
     lib = _get_lib()
     if lib is not None:
-        try:
+        with contextlib.suppress(Exception):
             lib.goated_http_server_stop(server_id)
-        except Exception:
-            pass
 
 
 __all__ = [
