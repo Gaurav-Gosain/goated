@@ -60,17 +60,17 @@ import re as _re_mod
 
 _PCRE_ONLY_FEATURES = _re_mod.compile(
     r"(?:"
-    r"\\[0-9]"            # backreferences \1, \2, ...
+    r"\\[0-9]"  # backreferences \1, \2, ...
     r"|"
-    r"\(\?<[!=]"          # lookbehind (?<=...) (?<!...)
+    r"\(\?<[!=]"  # lookbehind (?<=...) (?<!...)
     r"|"
-    r"\(\?[!=]"           # lookahead (?=...) (?!...)
+    r"\(\?[!=]"  # lookahead (?=...) (?!...)
     r"|"
-    r"\(\?P=[a-zA-Z]"    # named backreference (?P=name)
+    r"\(\?P=[a-zA-Z]"  # named backreference (?P=name)
     r"|"
-    r"\(\?\("             # conditional patterns (?(id)yes|no)
+    r"\(\?\("  # conditional patterns (?(id)yes|no)
     r"|"
-    r"\(\?#"              # comment groups
+    r"\(\?#"  # comment groups
     r")"
 )
 
@@ -85,7 +85,8 @@ def _setup_lib() -> None:
     try:
         lib = get_lib().lib
         lib.goated_regexp_compile.argtypes = [
-            ctypes.c_char_p, ctypes.POINTER(ctypes.c_char_p),
+            ctypes.c_char_p,
+            ctypes.POINTER(ctypes.c_char_p),
         ]
         lib.goated_regexp_compile.restype = ctypes.c_uint64
 
@@ -96,17 +97,23 @@ def _setup_lib() -> None:
         lib.goated_regexp_find_string.restype = ctypes.c_char_p
 
         lib.goated_regexp_find_all_string.argtypes = [
-            ctypes.c_uint64, ctypes.c_char_p, ctypes.c_int,
+            ctypes.c_uint64,
+            ctypes.c_char_p,
+            ctypes.c_int,
         ]
         lib.goated_regexp_find_all_string.restype = ctypes.c_uint64
 
         lib.goated_regexp_replace_all_string.argtypes = [
-            ctypes.c_uint64, ctypes.c_char_p, ctypes.c_char_p,
+            ctypes.c_uint64,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
         ]
         lib.goated_regexp_replace_all_string.restype = ctypes.c_char_p
 
         lib.goated_regexp_split.argtypes = [
-            ctypes.c_uint64, ctypes.c_char_p, ctypes.c_int,
+            ctypes.c_uint64,
+            ctypes.c_char_p,
+            ctypes.c_int,
         ]
         lib.goated_regexp_split.restype = ctypes.c_uint64
 
@@ -180,7 +187,8 @@ class _GoPattern:
                         go_pattern = "(?s)" + go_pattern
 
                     handle = lib.goated_regexp_compile(
-                        go_pattern.encode("utf-8"), ctypes.byref(err_out),
+                        go_pattern.encode("utf-8"),
+                        ctypes.byref(err_out),
                     )
                     if handle and not err_out.value:
                         self._go_handle = handle
@@ -336,7 +344,11 @@ def sub(pattern: str, repl: str | Any, string: str, count: int = 0, flags: int =
 
 
 def subn(
-    pattern: str, repl: str | Any, string: str, count: int = 0, flags: int = 0,
+    pattern: str,
+    repl: str | Any,
+    string: str,
+    count: int = 0,
+    flags: int = 0,
 ) -> tuple[str, int]:
     """Like sub(), but also return the number of substitutions made."""
     return _re.subn(pattern, repl, string, count=count, flags=flags)

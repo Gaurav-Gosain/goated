@@ -180,9 +180,12 @@ def cidr_contains(cidr: str, ip: str) -> bool:
         cffi_lib = get_cffi_lib()
         if cffi_lib is not None:
             try:
-                return bool(cffi_lib.goated_cidr_contains(
-                    cidr.encode("utf-8"), ip.encode("utf-8"),
-                ))
+                return bool(
+                    cffi_lib.goated_cidr_contains(
+                        cidr.encode("utf-8"),
+                        ip.encode("utf-8"),
+                    )
+                )
             except Exception:
                 pass
 
@@ -190,9 +193,12 @@ def cidr_contains(cidr: str, ip: str) -> bool:
         if _lib_setup:
             try:
                 lib = get_lib().lib
-                return bool(lib.goated_cidr_contains(
-                    cidr.encode("utf-8"), ip.encode("utf-8"),
-                ))
+                return bool(
+                    lib.goated_cidr_contains(
+                        cidr.encode("utf-8"),
+                        ip.encode("utf-8"),
+                    )
+                )
             except Exception:
                 pass
 

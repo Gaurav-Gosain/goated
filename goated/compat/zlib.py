@@ -48,11 +48,16 @@ def _setup_lib() -> None:
     try:
         lib = get_lib().lib
         lib.goated_zlib_compress.argtypes = [
-            ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_int),
+            ctypes.c_char_p,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.POINTER(ctypes.c_int),
         ]
         lib.goated_zlib_compress.restype = ctypes.c_void_p
         lib.goated_zlib_decompress.argtypes = [
-            ctypes.c_char_p, ctypes.c_int, ctypes.POINTER(ctypes.c_int),
+            ctypes.c_char_p,
+            ctypes.c_int,
+            ctypes.POINTER(ctypes.c_int),
             ctypes.POINTER(ctypes.c_char_p),
         ]
         lib.goated_zlib_decompress.restype = ctypes.c_void_p
@@ -99,7 +104,10 @@ def decompress(data: bytes, wbits: int = MAX_WBITS, bufsize: int = DEF_BUF_SIZE)
                 out_len = ctypes.c_int()
                 err_out = ctypes.c_char_p()
                 ptr = lib.goated_zlib_decompress(
-                    data, len(data), ctypes.byref(out_len), ctypes.byref(err_out),
+                    data,
+                    len(data),
+                    ctypes.byref(out_len),
+                    ctypes.byref(err_out),
                 )
                 if ptr and not err_out.value and out_len.value > 0:
                     result = ctypes.string_at(ptr, out_len.value)

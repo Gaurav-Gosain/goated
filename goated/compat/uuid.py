@@ -45,8 +45,8 @@ def _setup_lib() -> None:
         lib.goated_uuid4.argtypes = []
         lib.goated_uuid4.restype = ctypes.c_char_p
         lib.goated_batch_uuid4.argtypes = [
-            ctypes.c_int,                           # count
-            ctypes.POINTER(ctypes.c_char_p),       # results
+            ctypes.c_int,  # count
+            ctypes.POINTER(ctypes.c_char_p),  # results
         ]
         lib.goated_batch_uuid4.restype = None
         _lib_setup = True
@@ -64,6 +64,7 @@ def uuid4() -> _uuid.UUID:
         if cffi_lib is not None:
             try:
                 from goated._core import _cffi_ffi
+
                 result = cffi_lib.goated_uuid4()
                 if result:
                     return _uuid.UUID(_cffi_ffi.string(result).decode("utf-8"))
@@ -100,6 +101,7 @@ def batch_uuid4(n: int) -> list[_uuid.UUID]:
         if cffi_lib is not None:
             try:
                 from goated._core import _cffi_ffi
+
                 results = _cffi_ffi.new("char*[]", n)
                 cffi_lib.goated_batch_uuid4(n, results)
                 uuids = []

@@ -64,6 +64,7 @@ def fill(text: str, width: int = 70, **kwargs: object) -> str:
     if cffi_lib is not None:
         try:
             from goated._core import _cffi_ffi
+
             result = cffi_lib.goated_textwrap_fill(text.encode("utf-8"), width)
             if result:
                 return _cffi_ffi.string(result).decode("utf-8")
@@ -99,6 +100,7 @@ def wrap(text: str, width: int = 70, **kwargs: object) -> list[str]:
     if cffi_lib is not None:
         try:
             from goated._core import _cffi_ffi
+
             handle = cffi_lib.goated_textwrap_wrap(text.encode("utf-8"), width)
             if handle:
                 try:

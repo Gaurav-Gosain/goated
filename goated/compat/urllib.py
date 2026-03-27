@@ -54,13 +54,15 @@ def _setup_lib() -> None:
         lib.goated_url_query_escape.argtypes = [ctypes.c_char_p]
         lib.goated_url_query_escape.restype = ctypes.c_char_p
         lib.goated_url_query_unescape.argtypes = [
-            ctypes.c_char_p, ctypes.POINTER(ctypes.c_char_p),
+            ctypes.c_char_p,
+            ctypes.POINTER(ctypes.c_char_p),
         ]
         lib.goated_url_query_unescape.restype = ctypes.c_char_p
         lib.goated_url_path_escape.argtypes = [ctypes.c_char_p]
         lib.goated_url_path_escape.restype = ctypes.c_char_p
         lib.goated_url_path_unescape.argtypes = [
-            ctypes.c_char_p, ctypes.POINTER(ctypes.c_char_p),
+            ctypes.c_char_p,
+            ctypes.POINTER(ctypes.c_char_p),
         ]
         lib.goated_url_path_unescape.restype = ctypes.c_char_p
         _lib_setup = True
@@ -69,7 +71,10 @@ def _setup_lib() -> None:
 
 
 def quote(
-    string: str, safe: str = "/", encoding: str | None = None, errors: str | None = None,
+    string: str,
+    safe: str = "/",
+    encoding: str | None = None,
+    errors: str | None = None,
 ) -> str:
     """URL-encode a string. Go-accelerated (8-10x faster than urllib.parse).
 
@@ -93,6 +98,7 @@ def quote(
             result = cffi_lib.goated_url_path_escape(encoded)
             if result:
                 from goated._core import _cffi_ffi
+
                 return _cffi_ffi.string(result).decode("utf-8")
         else:
             lib = get_lib().lib
@@ -105,7 +111,10 @@ def quote(
 
 
 def quote_plus(
-    string: str, safe: str = "", encoding: str | None = None, errors: str | None = None,
+    string: str,
+    safe: str = "",
+    encoding: str | None = None,
+    errors: str | None = None,
 ) -> str:
     """Like quote() but also replaces spaces with +. Go-accelerated."""
     if encoding is not None or errors is not None or safe:
@@ -125,6 +134,7 @@ def quote_plus(
             result = cffi_lib.goated_url_query_escape(encoded)
             if result:
                 from goated._core import _cffi_ffi
+
                 return _cffi_ffi.string(result).decode("utf-8")
         else:
             lib = get_lib().lib
@@ -153,6 +163,7 @@ def unquote(string: str, encoding: str = "utf-8", errors: str = "replace") -> st
         if _use_cffi:
             cffi_lib = get_cffi_lib()
             from goated._core import _cffi_ffi
+
             err_out = _cffi_ffi.new("char**")
             result = cffi_lib.goated_url_query_unescape(encoded, err_out)
             if result and not err_out[0]:

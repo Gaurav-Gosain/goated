@@ -74,7 +74,9 @@ def parseaddr(addr: str) -> tuple[str, str]:
             name_out = _cffi_ffi.new("char**")
             email_out = _cffi_ffi.new("char**")
             ok = cffi_lib.goated_email_parse_address(
-                addr.encode("utf-8"), name_out, email_out,
+                addr.encode("utf-8"),
+                name_out,
+                email_out,
             )
             if ok:
                 name = _cffi_ffi.string(name_out[0]).decode("utf-8") if name_out[0] else ""
@@ -158,7 +160,9 @@ def batch_parse(
                     name_out = _cffi_ffi.new("char**")
                     email_out = _cffi_ffi.new("char**")
                     ok = cffi_lib.goated_email_parse_address(
-                        addr.encode("utf-8"), name_out, email_out,
+                        addr.encode("utf-8"),
+                        name_out,
+                        email_out,
                     )
                     if ok:
                         name = _cffi_ffi.string(name_out[0]).decode("utf-8") if name_out[0] else ""

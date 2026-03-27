@@ -38,7 +38,9 @@ def _setup_lib() -> None:
     try:
         lib = get_lib().lib
         lib.goated_rgb_to_hsv.argtypes = [
-            ctypes.c_double, ctypes.c_double, ctypes.c_double,
+            ctypes.c_double,
+            ctypes.c_double,
+            ctypes.c_double,
             ctypes.POINTER(ctypes.c_double),
             ctypes.POINTER(ctypes.c_double),
             ctypes.POINTER(ctypes.c_double),
@@ -48,7 +50,7 @@ def _setup_lib() -> None:
             ctypes.POINTER(ctypes.c_double),  # rs
             ctypes.POINTER(ctypes.c_double),  # gs
             ctypes.POINTER(ctypes.c_double),  # bs
-            ctypes.c_int,                      # count
+            ctypes.c_int,  # count
             ctypes.POINTER(ctypes.c_double),  # hs
             ctypes.POINTER(ctypes.c_double),  # ss
             ctypes.POINTER(ctypes.c_double),  # vs

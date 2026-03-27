@@ -39,13 +39,13 @@ def _setup_lib() -> None:
         lib = get_lib().lib
         lib.goated_diff_unified.argtypes = [
             ctypes.POINTER(ctypes.c_char_p),  # aLines
-            ctypes.c_int,                      # aCount
+            ctypes.c_int,  # aCount
             ctypes.POINTER(ctypes.c_char_p),  # bLines
-            ctypes.c_int,                      # bCount
-            ctypes.c_char_p,                   # fromFile
-            ctypes.c_char_p,                   # toFile
-            ctypes.c_int,                      # contextLines
-            ctypes.POINTER(ctypes.c_int),      # outLen
+            ctypes.c_int,  # bCount
+            ctypes.c_char_p,  # fromFile
+            ctypes.c_char_p,  # toFile
+            ctypes.c_int,  # contextLines
+            ctypes.POINTER(ctypes.c_int),  # outLen
         ]
         lib.goated_diff_unified.restype = ctypes.c_char_p
         _lib_setup = True
@@ -72,19 +72,33 @@ def unified_diff(
     b_list = list(b)
 
     if len(a_list) + len(b_list) < _GO_THRESHOLD or not _USE_GO_LIB:
-        return list(_difflib.unified_diff(
-            a_list, b_list, fromfile=fromfile, tofile=tofile,
-            fromfiledate=fromfiledate, tofiledate=tofiledate,
-            n=n, lineterm=lineterm,
-        ))
+        return list(
+            _difflib.unified_diff(
+                a_list,
+                b_list,
+                fromfile=fromfile,
+                tofile=tofile,
+                fromfiledate=fromfiledate,
+                tofiledate=tofiledate,
+                n=n,
+                lineterm=lineterm,
+            )
+        )
 
     # filedate not supported in Go path; fall back if used
     if fromfiledate or tofiledate:
-        return list(_difflib.unified_diff(
-            a_list, b_list, fromfile=fromfile, tofile=tofile,
-            fromfiledate=fromfiledate, tofiledate=tofiledate,
-            n=n, lineterm=lineterm,
-        ))
+        return list(
+            _difflib.unified_diff(
+                a_list,
+                b_list,
+                fromfile=fromfile,
+                tofile=tofile,
+                fromfiledate=fromfiledate,
+                tofiledate=tofiledate,
+                n=n,
+                lineterm=lineterm,
+            )
+        )
 
     # Prefer cffi
     from goated._core import get_cffi_lib
@@ -101,9 +115,14 @@ def unified_diff(
             out_len = _cffi_ffi.new("int*")
 
             result = cffi_lib.goated_diff_unified(
-                a_arr, len(a_list), b_arr, len(b_list),
-                fromfile.encode("utf-8"), tofile.encode("utf-8"),
-                n, out_len,
+                a_arr,
+                len(a_list),
+                b_arr,
+                len(b_list),
+                fromfile.encode("utf-8"),
+                tofile.encode("utf-8"),
+                n,
+                out_len,
             )
             if result:
                 text = _cffi_ffi.string(result).decode("utf-8")
@@ -125,9 +144,14 @@ def unified_diff(
             out_len = ctypes.c_int()
 
             result = lib.goated_diff_unified(
-                a_arr, len(a_list), b_arr, len(b_list),
-                fromfile.encode("utf-8"), tofile.encode("utf-8"),
-                n, ctypes.byref(out_len),
+                a_arr,
+                len(a_list),
+                b_arr,
+                len(b_list),
+                fromfile.encode("utf-8"),
+                tofile.encode("utf-8"),
+                n,
+                ctypes.byref(out_len),
             )
             if result:
                 text = result.decode("utf-8")
@@ -137,10 +161,16 @@ def unified_diff(
         except Exception:
             pass
 
-    return list(_difflib.unified_diff(
-        a_list, b_list, fromfile=fromfile, tofile=tofile,
-        n=n, lineterm=lineterm,
-    ))
+    return list(
+        _difflib.unified_diff(
+            a_list,
+            b_list,
+            fromfile=fromfile,
+            tofile=tofile,
+            n=n,
+            lineterm=lineterm,
+        )
+    )
 
 
 __all__ = [

@@ -65,11 +65,15 @@ def _setup() -> None:
         lib.goated_http_server_new.argtypes = [ctypes.c_char_p]
         lib.goated_http_server_new.restype = ctypes.c_uint64
         lib.goated_http_server_route.argtypes = [
-            ctypes.c_uint64, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p,
+            ctypes.c_uint64,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
         ]
         lib.goated_http_server_route.restype = None
         lib.goated_http_server_start.argtypes = [
-            ctypes.c_uint64, ctypes.POINTER(ctypes.c_char_p),
+            ctypes.c_uint64,
+            ctypes.POINTER(ctypes.c_char_p),
         ]
         lib.goated_http_server_start.restype = None
         lib.goated_http_server_stop.argtypes = [ctypes.c_uint64]
@@ -77,7 +81,9 @@ def _setup() -> None:
         lib.goated_http_server_addr.argtypes = [ctypes.c_uint64]
         lib.goated_http_server_addr.restype = ctypes.c_char_p
         lib.goated_http_bench_server.argtypes = [
-            ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_char_p),
+            ctypes.c_char_p,
+            ctypes.c_char_p,
+            ctypes.POINTER(ctypes.c_char_p),
         ]
         lib.goated_http_bench_server.restype = ctypes.c_uint64
         lib.goated_http_fileserver_new.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
@@ -173,12 +179,11 @@ class GoServer:
         lib = _get_lib()
         if _use_cffi:
             from goated._core import _cffi_ffi
+
             err = _cffi_ffi.new("char**")
             lib.goated_http_server_start(self._id, err)
             if err[0]:
-                raise GoServerError(
-                    f"Failed to start server: {_cffi_ffi.string(err[0]).decode()}"
-                )
+                raise GoServerError(f"Failed to start server: {_cffi_ffi.string(err[0]).decode()}")
         else:
             err = ctypes.c_char_p()
             lib.goated_http_server_start(self._id, ctypes.byref(err))
@@ -209,6 +214,7 @@ class GoServer:
                 lib = _get_lib()
                 if _use_cffi:
                     from goated._core import _cffi_ffi
+
                     result = lib.goated_http_server_addr(self._id)
                     if result:
                         return _cffi_ffi.string(result).decode("utf-8")
@@ -267,7 +273,8 @@ class FileServer:
         if lib is None:
             raise GoServerError("Go library not available. Run 'make build' to compile.")
         self._id = lib.goated_http_fileserver_new(
-            addr.encode("utf-8"), directory.encode("utf-8"),
+            addr.encode("utf-8"),
+            directory.encode("utf-8"),
         )
         if not self._id:
             raise GoServerError("Failed to create Go file server.")
@@ -283,6 +290,7 @@ class FileServer:
         lib = _get_lib()
         if _use_cffi:
             from goated._core import _cffi_ffi
+
             err = _cffi_ffi.new("char**")
             lib.goated_http_server_start(self._id, err)
             if err[0]:
@@ -336,10 +344,7 @@ class FileServer:
 
     def __repr__(self) -> str:
         status = "running" if self._started else "stopped"
-        return (
-            f"FileServer(addr={self._addr!r}, "
-            f"dir={self._directory!r}, status={status})"
-        )
+        return f"FileServer(addr={self._addr!r}, dir={self._directory!r}, status={status})"
 
 
 # Alias for compatibility with spec naming
@@ -366,9 +371,12 @@ class BenchServer:
 
         if _use_cffi:
             from goated._core import _cffi_ffi
+
             err = _cffi_ffi.new("char**")
             self._id = lib.goated_http_bench_server(
-                addr.encode("utf-8"), json_response.encode("utf-8"), err,
+                addr.encode("utf-8"),
+                json_response.encode("utf-8"),
+                err,
             )
             if err[0]:
                 raise GoServerError(
@@ -377,7 +385,9 @@ class BenchServer:
         else:
             err = ctypes.c_char_p()
             self._id = lib.goated_http_bench_server(
-                addr.encode("utf-8"), json_response.encode("utf-8"), ctypes.byref(err),
+                addr.encode("utf-8"),
+                json_response.encode("utf-8"),
+                ctypes.byref(err),
             )
             if err.value:
                 raise GoServerError(f"Failed to start bench server: {err.value.decode()}")
@@ -443,9 +453,12 @@ def bench_server(addr: str, json_response: str) -> int:
 
     if _use_cffi:
         from goated._core import _cffi_ffi
+
         err = _cffi_ffi.new("char**")
         server_id = lib.goated_http_bench_server(
-            addr.encode("utf-8"), json_response.encode("utf-8"), err,
+            addr.encode("utf-8"),
+            json_response.encode("utf-8"),
+            err,
         )
         if err[0]:
             raise GoServerError(
@@ -454,7 +467,9 @@ def bench_server(addr: str, json_response: str) -> int:
     else:
         err = ctypes.c_char_p()
         server_id = lib.goated_http_bench_server(
-            addr.encode("utf-8"), json_response.encode("utf-8"), ctypes.byref(err),
+            addr.encode("utf-8"),
+            json_response.encode("utf-8"),
+            ctypes.byref(err),
         )
         if err.value:
             raise GoServerError(f"Failed to start bench server: {err.value.decode()}")

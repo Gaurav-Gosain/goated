@@ -41,6 +41,7 @@ _cffi_available = False
 try:
     from _goated_cffi import ffi as _cffi_ffi
     from _goated_cffi import lib as _cffi_lib
+
     _cffi_available = True
 except ImportError:
     try:
@@ -50,6 +51,7 @@ except ImportError:
             sys.path.insert(0, _pkg_dir)
         from _goated_cffi import ffi as _cffi_ffi
         from _goated_cffi import lib as _cffi_lib
+
         _cffi_available = True
     except ImportError:
         pass

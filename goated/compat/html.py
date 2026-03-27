@@ -59,6 +59,7 @@ def unescape(s: str) -> str:
     if cffi_lib is not None:
         try:
             from goated._core import _cffi_ffi
+
             result = cffi_lib.goated_html_unescape_string(s.encode("utf-8"))
             if result:
                 return _cffi_ffi.string(result).decode("utf-8")

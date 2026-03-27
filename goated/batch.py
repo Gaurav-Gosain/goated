@@ -33,36 +33,48 @@ def _setup() -> None:
 
         # Batch gzip compress
         lib.goated_batch_gzip_compress.argtypes = [
-            ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int), ctypes.c_int,
+            ctypes.POINTER(ctypes.c_char_p),
+            ctypes.POINTER(ctypes.c_int),
             ctypes.c_int,
-            ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(ctypes.c_int),
+            ctypes.c_int,
+            ctypes.POINTER(ctypes.c_void_p),
+            ctypes.POINTER(ctypes.c_int),
         ]
         lib.goated_batch_gzip_compress.restype = None
 
         # Batch gzip decompress
         lib.goated_batch_gzip_decompress.argtypes = [
-            ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int), ctypes.c_int,
-            ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(ctypes.c_int),
+            ctypes.POINTER(ctypes.c_char_p),
+            ctypes.POINTER(ctypes.c_int),
+            ctypes.c_int,
+            ctypes.POINTER(ctypes.c_void_p),
+            ctypes.POINTER(ctypes.c_int),
         ]
         lib.goated_batch_gzip_decompress.restype = None
 
         # Batch base64 encode
         lib.goated_batch_base64_encode.argtypes = [
-            ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int), ctypes.c_int,
+            ctypes.POINTER(ctypes.c_char_p),
+            ctypes.POINTER(ctypes.c_int),
+            ctypes.c_int,
             ctypes.POINTER(ctypes.c_char_p),
         ]
         lib.goated_batch_base64_encode.restype = None
 
         # Batch base64 decode
         lib.goated_batch_base64_decode.argtypes = [
-            ctypes.POINTER(ctypes.c_char_p), ctypes.c_int,
-            ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(ctypes.c_int),
+            ctypes.POINTER(ctypes.c_char_p),
+            ctypes.c_int,
+            ctypes.POINTER(ctypes.c_void_p),
+            ctypes.POINTER(ctypes.c_int),
         ]
         lib.goated_batch_base64_decode.restype = None
 
         # Batch JSON validate
         lib.goated_batch_json_valid.argtypes = [
-            ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int), ctypes.c_int,
+            ctypes.POINTER(ctypes.c_char_p),
+            ctypes.POINTER(ctypes.c_int),
+            ctypes.c_int,
             ctypes.POINTER(ctypes.c_bool),
         ]
         lib.goated_batch_json_valid.restype = None
@@ -70,7 +82,8 @@ def _setup() -> None:
         # Batch regex match
         lib.goated_batch_regexp_match.argtypes = [
             ctypes.c_uint64,
-            ctypes.POINTER(ctypes.c_char_p), ctypes.c_int,
+            ctypes.POINTER(ctypes.c_char_p),
+            ctypes.c_int,
             ctypes.POINTER(ctypes.c_bool),
         ]
         lib.goated_batch_regexp_match.restype = None

@@ -35,11 +35,16 @@ def _setup_lib() -> None:
         lib = get_lib().lib
         # Use c_void_p for return type to avoid null-byte truncation
         lib.goated_gzip_compress.argtypes = [
-            ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_int),
+            ctypes.c_char_p,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.POINTER(ctypes.c_int),
         ]
         lib.goated_gzip_compress.restype = ctypes.c_void_p
         lib.goated_gzip_decompress.argtypes = [
-            ctypes.c_char_p, ctypes.c_int, ctypes.POINTER(ctypes.c_int),
+            ctypes.c_char_p,
+            ctypes.c_int,
+            ctypes.POINTER(ctypes.c_int),
             ctypes.POINTER(ctypes.c_char_p),
         ]
         lib.goated_gzip_decompress.restype = ctypes.c_void_p
@@ -61,7 +66,10 @@ def compress(data: bytes, compresslevel: int = 9, mtime: float | None = None) ->
                 lib = get_lib().lib
                 out_len = ctypes.c_int()
                 ptr = lib.goated_gzip_compress(
-                    data, len(data), compresslevel, ctypes.byref(out_len),
+                    data,
+                    len(data),
+                    compresslevel,
+                    ctypes.byref(out_len),
                 )
                 if ptr and out_len.value > 0:
                     result = ctypes.string_at(ptr, out_len.value)
@@ -83,7 +91,10 @@ def decompress(data: bytes) -> bytes:
             out_len = ctypes.c_int()
             err_out = ctypes.c_char_p()
             ptr = lib.goated_gzip_decompress(
-                data, len(data), ctypes.byref(out_len), ctypes.byref(err_out),
+                data,
+                len(data),
+                ctypes.byref(out_len),
+                ctypes.byref(err_out),
             )
             if ptr and not err_out.value and out_len.value > 0:
                 result = ctypes.string_at(ptr, out_len.value)

@@ -50,7 +50,9 @@ def _setup_lib() -> None:
     try:
         lib = get_lib().lib
         lib.goated_csv_read_all.argtypes = [
-            ctypes.c_char_p, ctypes.c_int, ctypes.POINTER(ctypes.c_char_p),
+            ctypes.c_char_p,
+            ctypes.c_int,
+            ctypes.POINTER(ctypes.c_char_p),
         ]
         lib.goated_csv_read_all.restype = ctypes.c_uint64
         lib.goated_csv_records_len.argtypes = [ctypes.c_uint64]

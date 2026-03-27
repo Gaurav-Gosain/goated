@@ -33,16 +33,16 @@ def _setup_lib() -> None:
         lib.goated_fnmatch.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
         lib.goated_fnmatch.restype = ctypes.c_bool
         lib.goated_batch_fnmatch.argtypes = [
-            ctypes.c_char_p,                       # pattern
-            ctypes.POINTER(ctypes.c_char_p),       # names
-            ctypes.c_int,                           # count
-            ctypes.POINTER(ctypes.c_bool),          # results
+            ctypes.c_char_p,  # pattern
+            ctypes.POINTER(ctypes.c_char_p),  # names
+            ctypes.c_int,  # count
+            ctypes.POINTER(ctypes.c_bool),  # results
         ]
         lib.goated_batch_fnmatch.restype = None
         lib.goated_fnmatch_filter.argtypes = [
-            ctypes.POINTER(ctypes.c_char_p),       # names
-            ctypes.c_int,                           # count
-            ctypes.c_char_p,                        # pattern
+            ctypes.POINTER(ctypes.c_char_p),  # names
+            ctypes.c_int,  # count
+            ctypes.c_char_p,  # pattern
         ]
         lib.goated_fnmatch_filter.restype = ctypes.c_uint64  # handle
         lib.goated_slice_string_len.argtypes = [ctypes.c_uint64]
@@ -71,9 +71,12 @@ def fnmatch(name: str, pat: str) -> bool:
     cffi_lib = get_cffi_lib()
     if cffi_lib is not None:
         try:
-            return bool(cffi_lib.goated_fnmatch(
-                pat.encode("utf-8"), name.encode("utf-8"),
-            ))
+            return bool(
+                cffi_lib.goated_fnmatch(
+                    pat.encode("utf-8"),
+                    name.encode("utf-8"),
+                )
+            )
         except Exception:
             pass
 
@@ -82,9 +85,12 @@ def fnmatch(name: str, pat: str) -> bool:
     if _lib_setup:
         try:
             lib = get_lib().lib
-            return bool(lib.goated_fnmatch(
-                pat.encode("utf-8"), name.encode("utf-8"),
-            ))
+            return bool(
+                lib.goated_fnmatch(
+                    pat.encode("utf-8"),
+                    name.encode("utf-8"),
+                )
+            )
         except Exception:
             pass
 
@@ -118,7 +124,10 @@ def filter(names: Sequence[str], pat: str) -> list[str]:
             names_arr = _cffi_ffi.new("char*[]", [_cffi_ffi.new("char[]", s) for s in encoded])
             results = _cffi_ffi.new("_Bool[]", len(names_list))
             cffi_lib.goated_batch_fnmatch(
-                pat.encode("utf-8"), names_arr, len(names_list), results,
+                pat.encode("utf-8"),
+                names_arr,
+                len(names_list),
+                results,
             )
             return [n for n, m in zip(names_list, results, strict=False) if m]
         except Exception:
@@ -133,7 +142,10 @@ def filter(names: Sequence[str], pat: str) -> list[str]:
             names_arr = (ctypes.c_char_p * len(names_list))(*encoded)
             results = (ctypes.c_bool * len(names_list))()
             lib.goated_batch_fnmatch(
-                pat.encode("utf-8"), names_arr, len(names_list), results,
+                pat.encode("utf-8"),
+                names_arr,
+                len(names_list),
+                results,
             )
             return [n for n, m in zip(names_list, results, strict=False) if m]
         except Exception:
